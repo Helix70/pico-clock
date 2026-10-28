@@ -22,16 +22,21 @@ static const uint8_t FONT[10] = {
 #define SEG_LETTER_F  (HU058_SEG_A | HU058_SEG_E | HU058_SEG_F | HU058_SEG_G)
 #define SEG_MINUS     (HU058_SEG_G)
 
-/* COM pair values for the four scan phases. */
-static const uint8_t COM_PAIRS[4] = { 0x03, 0x0C, 0x30, 0xC0 };
+/*
+ * COM pair values for the four scan phases.
+ * Tens digits sit on COM4-7 (0x30 low, 0xC0 high),
+ * ones digits on COM0-3 (0x03 low, 0x0C high).
+ */
+static const uint8_t COM_PAIRS[4] = { 0x30, 0xC0, 0x03, 0x0C };
 
 /*
  * SEG bit positions for each LED's R/G/B channels.
  * LED1 = SEG1-3, LED2 = SEG4-6, … LED5 = SEG13-15.
+ * Within a triple the order is blue, green, red.
  */
-#define LED_R(n)  (1u << (((n) - 1) * 3 + 1))
+#define LED_B(n)  (1u << (((n) - 1) * 3 + 1))
 #define LED_G(n)  (1u << (((n) - 1) * 3 + 2))
-#define LED_B(n)  (1u << (((n) - 1) * 3 + 3))
+#define LED_R(n)  (1u << (((n) - 1) * 3 + 3))
 
 static uint16_t led_bits(int led, hu058_color_t c)
 {
@@ -48,21 +53,21 @@ static uint16_t led_bits(int led, hu058_color_t c)
  * Each annunciator occupies the LED1 position of a specific
  * driver and COM phase:
  *
- *   AM           → driver 0, phase 0 (hour tens, COM-low)
- *   COLON_UPPER  → driver 0, phase 2 (hour ones, COM-low)
- *   COLON_LOWER  → driver 0, phase 3 (hour ones, COM-high)
- *   DASH         → driver 1, phase 0 (min tens, COM-low)
- *   DEGREE       → driver 1, phase 2 (min ones, COM-low)
+ *   AM           → driver 0, phase 1 (hour tens, COM-high)
+ *   COLON_UPPER  → driver 0, phase 3 (hour ones, COM-high)
+ *   COLON_LOWER  → driver 0, phase 2 (hour ones, COM-low)
+ *   DASH         → driver 1, phase 1 (min tens, COM-high)
+ *   DEGREE       → driver 1, phase 3 (min ones, COM-high)
  */
 static const struct {
     uint8_t driver;
     uint8_t phase;
 } ANN_MAP[HU058_NUM_ANN] = {
-    [HU058_ANN_AM]          = { 0, 0 },
-    [HU058_ANN_COLON_UPPER] = { 0, 2 },
-    [HU058_ANN_COLON_LOWER] = { 0, 3 },
-    [HU058_ANN_DASH]        = { 1, 0 },
-    [HU058_ANN_DEGREE]      = { 1, 2 },
+    [HU058_ANN_AM]          = { 0, 1 },
+    [HU058_ANN_COLON_UPPER] = { 0, 3 },
+    [HU058_ANN_COLON_LOWER] = { 0, 2 },
+    [HU058_ANN_DASH]        = { 1, 1 },
+    [HU058_ANN_DEGREE]      = { 1, 3 },
 };
 
 /*
@@ -74,8 +79,8 @@ static const uint8_t DIGIT_DRIVER[HU058_NUM_DIGITS] = { 0, 0, 1, 1 };
 
 /*
  * Digit-to-block mapping within a driver.
- * Tens digits use block 0 (COM phases 0-1).
- * Ones digits use block 1 (COM phases 2-3).
+ * Tens digits use block 0 (COM phases 0-1, 0x30/0xC0).
+ * Ones digits use block 1 (COM phases 2-3, 0x03/0x0C).
  */
 static const uint8_t DIGIT_BLOCK[HU058_NUM_DIGITS] = { 0, 1, 0, 1 };
 
