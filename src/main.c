@@ -2,6 +2,7 @@
 #include <zephyr/sys/printk.h>
 #include <zephyr/logging/log.h>
 #include <zephyr/drivers/gpio.h>
+#include <zephyr/drivers/uart.h>
 
 #include "settings.h"
 #include "ds1302.h"
@@ -24,6 +25,9 @@ LOG_MODULE_REGISTER(main, LOG_LEVEL_INF);
 #define AIP_MINUTES_DIN 8
 #define AIP_MINUTES_CLK 9
 #define AIP_PIO_FREQ_HZ 1000000
+
+/* How long to wait at boot for a host to open the USB CDC console. */
+#define CONSOLE_WAIT_MS 3000
 
 /* ADC channel specs from devicetree (zephyr,user node). */
 static const struct adc_dt_spec adc_therm = ADC_DT_SPEC_GET_BY_IDX(DT_PATH(zephyr_user), 0);
@@ -92,9 +96,33 @@ static void on_button(button_event_t event)
 	}
 }
 
+/*
+ * Wait for a host to open the USB CDC console (DTR asserted) so boot logs
+ * aren't lost. Gives up after CONSOLE_WAIT_MS so the clock still runs
+ * standalone.
+ */
+static void wait_for_console(void)
+{
+	const struct device *console = DEVICE_DT_GET(DT_CHOSEN(zephyr_console));
+	uint32_t dtr = 0;
+
+	if (!device_is_ready(console)) {
+		return;
+	}
+
+	for (int ms = 0; ms < CONSOLE_WAIT_MS; ms += 100) {
+		if (uart_line_ctrl_get(console, UART_LINE_CTRL_DTR, &dtr) == 0 && dtr) {
+			break;
+		}
+		k_msleep(100);
+	}
+}
+
 int main(void)
 {
 	int ret;
+
+	wait_for_console();
 
 	ret = settings_load(&settings);
 	if (ret < 0) {
