@@ -1,0 +1,60 @@
+; AiP33628 serial LED driver — PIO program for RP2040
+;
+; Protocol: 2-wire (DIN + CLK), 30-bit shift register with output latch.
+;   - Data changes on CLK low, latched on CLK rising edge.
+;   - Rising DIN while CLK high triggers output latch.
+;   - Rising DIN while CLK low exits latch mode.
+;
+; Frame: 32-bit FIFO word, MSB-first shift. Top 2 bits are discarded;
+;        the remaining 30 bits are the wire frame in MSB-first order
+;        (caller must pre-reverse if the logical frame is LSB-first).
+
+.program aip33628
+.side_set 1
+
+    pull            side 0  [8]  ; fetch 32-bit word; CLK low; idle 8 cycles
+    set  pins, 1    side 0  [1]  ; DIN high (CLK low) — exit latch / reset
+    set  pins, 0    side 0       ; DIN low — start of frame
+    out  y, 2       side 0       ; discard 2 MSBs (alignment)
+    set  y, 29      side 0       ; loop counter: 30 bits
+
+loop:
+    nop             side 0       ; CLK low — setup time
+    out  pins, 1    side 0       ; shift next bit onto DIN (CLK still low)
+    nop             side 1       ; CLK high — chip samples DIN
+    jmp  y--, loop  side 1       ; decrement; loop while y was nonzero
+    set  pins, 0    side 1  [4]  ; DIN low, CLK high — hold before latch
+    set  pins, 1    side 1  [1]  ; DIN rises while CLK high → LATCH
+    set  pins, 0    side 1       ; DIN low — clean up
+    nop             side 0       ; CLK low — idle state
+
+% c-sdk {
+#include "hardware/clocks.h"
+
+static inline void aip33628_program_init(PIO pio, uint sm, uint offset,
+                                         uint pin_din, uint pin_clk,
+                                         float freq_hz) {
+    pio_sm_config c = aip33628_program_get_default_config(offset);
+
+    /* DIN pin: used by both SET and OUT */
+    sm_config_set_set_pins(&c, pin_din, 1);
+    sm_config_set_out_pins(&c, pin_din, 1);
+    pio_gpio_init(pio, pin_din);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_din, 1, true);
+
+    /* CLK pin: side-set */
+    sm_config_set_sideset_pins(&c, pin_clk);
+    pio_gpio_init(pio, pin_clk);
+    pio_sm_set_consecutive_pindirs(pio, sm, pin_clk, 1, true);
+
+    /* MSB-first shift, no autopull */
+    sm_config_set_out_shift(&c, false, false, 32);
+
+    /* Clock divider */
+    float div = (float)clock_get_hz(clk_sys) / freq_hz;
+    sm_config_set_clkdiv(&c, div);
+
+    pio_sm_init(pio, sm, offset, &c);
+    pio_sm_set_enabled(pio, sm, true);
+}
+%}

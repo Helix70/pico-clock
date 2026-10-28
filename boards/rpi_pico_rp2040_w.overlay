@@ -1,0 +1,100 @@
+/*
+ * HU-058 clock — Pico 2 W devicetree overlay.
+ *
+ * PIO pins (AiP33628 DIN/CLK) are configured at runtime via
+ * pico-sdk PIO API, not devicetree.
+ */
+
+/ {
+	ds1302 {
+		compatible = "gpio-keys";
+		ce: ce_pin {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+			label = "DS1302 CE";
+		};
+		sclk: sclk_pin {
+			gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+			label = "DS1302 SCLK";
+		};
+		io: io_pin {
+			gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+			label = "DS1302 IO";
+		};
+	};
+
+	buttons {
+		compatible = "gpio-keys";
+		btn1: button_1 {
+			gpios = <&gpio0 14 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Button 1";
+		};
+		btn2: button_2 {
+			gpios = <&gpio0 15 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
+			label = "Button 2";
+		};
+	};
+
+	zephyr,user {
+		io-channels = <&adc 0>, <&adc 1>;
+	};
+
+	buzzer_dev {
+		compatible = "gpio-leds";
+		buzzer: buzzer_pin {
+			gpios = <&gpio0 11 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	aliases {
+		ds1302-ce = &ce;
+		ds1302-sclk = &sclk;
+		ds1302-io = &io;
+		button1 = &btn1;
+		button2 = &btn2;
+	};
+};
+
+
+&adc {
+	#address-cells = <1>;
+	#size-cells = <0>;
+	status = "okay";
+
+	/* Thermistor on ADC channel 0 (GP26) */
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+
+	/* Light sensor on ADC channel 1 (GP27) */
+	channel@1 {
+		reg = <1>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+};
+
+&pwm {
+	status = "okay";
+	pinctrl-0 = <&pwm_ch4b_default>;
+	pinctrl-names = "default";
+};
+
+/* NVS storage partition — 24 KB at end of 4 MB flash */
+&flash0 {
+	partitions {
+		compatible = "fixed-partitions";
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		storage_partition: partition@3fa000 {
+			label = "storage";
+			reg = <0x3fa000 0x6000>;
+		};
+	};
+};

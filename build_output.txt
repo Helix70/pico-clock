@@ -1,0 +1,40 @@
+-- west build: generating a build system
+Loading Zephyr default modules (Zephyr base (cached)).
+-- Application: C:/Users/z0035sjy/pico-clock/pico-clock
+-- CMake version: 3.31.6
+-- Cache files will be written to: C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/.cache
+-- Zephyr version: 4.5.0-rc3 (C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main)
+-- Found west (found suitable version "1.5.0", minimum required is "0.14.0")
+CMake Warning at C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/cmake/modules/boards.cmake:144 (message):
+  Deprecated BOARD=rpi_pico2/rp2350a/m33/w specified, board automatically
+  changed to: rpi_pico2/rp2350a/m33_0/w.
+Call Stack (most recent call first):
+  C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/cmake/modules/zephyr_default.cmake:115 (include)
+  C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/share/zephyr-package/cmake/ZephyrConfig.cmake:57 (include)
+  C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/share/zephyr-package/cmake/ZephyrConfig.cmake:88 (include_boilerplate)
+  CMakeLists.txt:14 (find_package)
+
+
+-- Board: rpi_pico2, qualifiers: rp2350a/m33_0/w
+-- Snippet(s): cdc-acm-console
+-- Found host-tools: zephyr 1.0.1 (C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-sdk-1.0.1)
+-- Found toolchain: zephyr 1.0.1 (C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-sdk-1.0.1)
+-- Found BOARD.dts: C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/boards/raspberrypi/rpi_pico2/rpi_pico2_rp2350a_m33_0_w.dts
+-- Found devicetree overlay: C:/Users/z0035sjy/pico-clock/pico-clock/boards/rpi_pico2_rp2350a_m33_0_w.overlay
+-- Found devicetree overlay: C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/snippets/cdc-acm-console/cdc-acm-console.overlay
+-- Generated zephyr.dts: C:/Users/z0035sjy/pico-clock/pico-clock/build/zephyr/zephyr.dts
+-- Generated pickled edt: C:/Users/z0035sjy/pico-clock/pico-clock/build/zephyr/edt.pickle
+-- Generated devicetree_generated.h: C:/Users/z0035sjy/pico-clock/pico-clock/build/zephyr/include/generated/zephyr/devicetree_generated.h
+C:/Users/z0035sjy/pico-clock/pico-clock/build/zephyr/zephyr.dts:577.23-582.5: Warning (unique_unit_address_if_enabled): /soc/vreg@40100000: duplicate unit-address (also used in node /soc/powman@40100000)
+Parsing C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/Kconfig
+Loaded configuration 'C:/Users/z0035sjy/pico-clock/pico-clock/build/zephyr/.config'
+No change to configuration in 'C:/Users/z0035sjy/pico-clock/pico-clock/build/zephyr/.config'
+No change to Kconfig header in 'C:/Users/z0035sjy/pico-clock/pico-clock/build/zephyr/include/generated/zephyr/autoconf.h'
+-- Could NOT find Ccache (missing: CCACHE) (Required is at least version "4.12")
+Hint: The project() command has not yet been called.  It sets up system-specific search paths.
+-- Found gen_kobject_list: C:/Users/z0035sjy/.pico-sdk/zephyr_workspace/zephyr-main/scripts/build/gen_kobject_list.py
+-- Configuring done (16.9s)
+-- Generating done (1.5s)
+-- Build files have been written to: C:/Users/z0035sjy/pico-clock/pico-clock/build
+-- west build: building application
+[1/291] Generating misc/generated/syscalls.json, misc/generated/struct_tags.json
