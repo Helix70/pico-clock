@@ -12,7 +12,7 @@
 #define aip33628_wrap 12
 
 static const uint16_t aip33628_program_instructions[] = {
-    0x8860, /*  0: pull   block           side 0 [8] */
+    0x88a0, /*  0: pull   block           side 0 [8] */
     0xe101, /*  1: set    pins, 1         side 0 [1] */
     0xe000, /*  2: set    pins, 0         side 0     */
     0x6042, /*  3: out    y, 2            side 0     */
