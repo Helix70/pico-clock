@@ -1,6 +1,7 @@
 #include <zephyr/kernel.h>
 #include <zephyr/sys/printk.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/logging/log_ctrl.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
 
@@ -112,6 +113,7 @@ static void wait_for_console(void)
 
 	for (int ms = 0; ms < CONSOLE_WAIT_MS; ms += 100) {
 		if (uart_line_ctrl_get(console, UART_LINE_CTRL_DTR, &dtr) == 0 && dtr) {
+			k_msleep(200);
 			break;
 		}
 		k_msleep(100);
@@ -123,6 +125,9 @@ int main(void)
 	int ret;
 
 	wait_for_console();
+	while (log_process()) {
+		k_msleep(50);
+	}
 
 	ret = settings_load(&settings);
 	if (ret < 0) {
@@ -229,6 +234,7 @@ int main(void)
 		hu058_set_brightness(&display, brightness);
 
 		hu058_compile(&display);
+		log_process();
 
 		k_sleep(K_SECONDS(1));
 	}

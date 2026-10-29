@@ -1,5 +1,5 @@
 /*
- * HU-058 clock — Pico 2 W devicetree overlay.
+ * HU-058 clock — Pico W devicetree overlay.
  *
  * PIO pins (AiP33628 DIN/CLK) are configured at runtime via
  * pico-sdk PIO API, not devicetree.
@@ -83,6 +83,13 @@
 	status = "okay";
 	pinctrl-0 = <&pwm_ch4b_default>;
 	pinctrl-names = "default";
+};
+
+&zephyr_udc0 {
+	snippet_cdc_acm_console_uart: snippet_cdc_acm_console_uart {
+		compatible = "zephyr,cdc-acm-uart";
+		tx-fifo-size = <4096>;
+	};
 };
 
 /* NVS storage partition — 24 KB at end of 4 MB flash */
