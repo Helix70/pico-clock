@@ -15,6 +15,8 @@ static bool stable1;
 static bool stable2;
 static uint32_t both_held_ticks;
 static bool both_held_fired;
+static uint32_t btn1_held_ticks;
+static bool btn1_held_fired;
 
 static struct k_timer poll_timer;
 
@@ -53,9 +55,21 @@ static void poll_handler(struct k_timer *timer)
             both_held_fired = true;
             if (cb) cb(BUTTON_BOTH_HELD);
         }
+        btn1_held_ticks = 0;
+        btn1_held_fired = false;
     } else {
         both_held_ticks = 0;
         both_held_fired = false;
+        if (stable1 && !stable2) {
+            btn1_held_ticks++;
+            if (btn1_held_ticks >= BOTH_HELD_TICKS && !btn1_held_fired) {
+                btn1_held_fired = true;
+                if (cb) cb(BUTTON_1_HELD);
+            }
+        } else {
+            btn1_held_ticks = 0;
+            btn1_held_fired = false;
+        }
     }
 }
 
@@ -80,6 +94,8 @@ int buttons_init(const buttons_config_t *cfg, button_callback_t callback)
     stable2 = false;
     both_held_ticks = 0;
     both_held_fired = false;
+    btn1_held_ticks = 0;
+    btn1_held_fired = false;
 
     k_timer_init(&poll_timer, poll_handler, NULL);
     k_timer_start(&poll_timer, K_MSEC(POLL_INTERVAL_MS),

@@ -92,16 +92,16 @@
 	};
 };
 
-/* NVS storage partition — 24 KB at end of 4 MB flash */
+/* NVS storage partition — 24 KB at end of 2 MB flash */
 &flash0 {
 	partitions {
 		compatible = "fixed-partitions";
 		#address-cells = <1>;
 		#size-cells = <1>;
 
-		storage_partition: partition@3fa000 {
+		storage_partition: partition@1fa000 {
 			label = "storage";
-			reg = <0x3fa000 0x6000>;
+			reg = <0x1fa000 0x6000>;
 		};
 	};
 };

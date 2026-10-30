@@ -1,5 +1,4 @@
 #include "webconfig.h"
-#include "wifiap.h"
 #include "httpserver.h"
 
 #include <zephyr/kernel.h>
@@ -7,7 +6,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define AP_CHANNEL  6
 #define HTTP_PORT   80
 
 static settings_t *cfg;
@@ -108,12 +106,11 @@ static const uint8_t brightness_map[] = {0, 0, 1, 3, 8, 15};
 
 static void parse_form(const char *body)
 {
-    find_field(body, "ssid", cfg->wifi_ssid, sizeof(cfg->wifi_ssid));
-    find_field(body, "pass", cfg->wifi_pass, sizeof(cfg->wifi_pass));
-
     cfg->fahrenheit  = field_present(body, "fahrenheit");
     cfg->time_24h    = field_present(body, "time_24h");
     cfg->hourly_beep = field_present(body, "hourly_beep");
+
+    cfg->temp_offset_tenths = (int8_t)field_int(body, "temp_offset", 0);
 
     for (int i = 0; i < SETTINGS_MAX_ALARMS; i++) {
         char key[16];
@@ -199,18 +196,6 @@ static void send_config_page(int fd)
 
     httpserver_send(fd, PAGE_HEAD, sizeof(PAGE_HEAD) - 1);
 
-    /* WiFi */
-    n = snprintf(buf, sizeof(buf),
-        "<fieldset><legend>WiFi</legend>"
-        "<label>SSID<input type=\"text\" name=\"ssid\" "
-        "maxlength=\"%d\" value=\"%s\"></label>"
-        "<label>Password<input type=\"password\" name=\"pass\" "
-        "maxlength=\"%d\" value=\"%s\"></label>"
-        "</fieldset>",
-        SETTINGS_SSID_MAX, cfg->wifi_ssid,
-        SETTINGS_PASS_MAX, cfg->wifi_pass);
-    httpserver_send(fd, buf, n);
-
     /* Display */
     n = snprintf(buf, sizeof(buf),
         "<fieldset><legend>Display</legend>"
@@ -218,9 +203,13 @@ static void send_config_page(int fd)
         " Temperature in &deg;F</label>"
         "<label><input type=\"checkbox\" name=\"time_24h\"%s>"
         " 24-hour mode</label>"
+        "<label>Temperature offset (tenths &deg;)"
+        "<input type=\"number\" name=\"temp_offset\" "
+        "min=\"-50\" max=\"50\" value=\"%d\"></label>"
         "</fieldset>",
         cfg->fahrenheit ? " checked" : "",
-        cfg->time_24h ? " checked" : "");
+        cfg->time_24h ? " checked" : "",
+        (int)cfg->temp_offset_tenths);
     httpserver_send(fd, buf, n);
 
     /* Hourly beep */
@@ -349,22 +338,12 @@ int webconfig_start(settings_t *settings, webconfig_callback_t callback)
     cfg = settings;
     on_save = callback;
 
-    int ret = wifiap_start(WEBCONFIG_AP_SSID, AP_CHANNEL);
-    if (ret < 0) return ret;
-
-    ret = httpserver_start(HTTP_PORT, request_handler, NULL);
-    if (ret < 0) {
-        wifiap_stop();
-        return ret;
-    }
-
-    return 0;
+    return httpserver_start(HTTP_PORT, request_handler, NULL);
 }
 
 void webconfig_stop(void)
 {
     httpserver_stop();
-    wifiap_stop();
     cfg = NULL;
     on_save = NULL;
 }

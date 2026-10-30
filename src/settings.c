@@ -13,6 +13,7 @@
 #define NVS_ID_NTP_SERVER 0x0005
 #define NVS_ID_UTC_OFFSET 0x0006
 #define NVS_ID_DISPLAY_HW 0x0007
+#define NVS_ID_TEMP_OFFSET 0x0008
 
 #define SETTINGS_MAGIC    0x01
 
@@ -98,6 +99,9 @@ int settings_load(settings_t *s)
         s->brightness = (disp_hw >> 4) & 0x0F;
     }
 
+    nvs_read(&fs, NVS_ID_TEMP_OFFSET, &s->temp_offset_tenths,
+             sizeof(s->temp_offset_tenths));
+
     return 0;
 }
 
@@ -133,6 +137,9 @@ int settings_save(const settings_t *s)
     if (s->led_b) disp_hw |= 0x04;
     disp_hw |= (s->brightness & 0x0F) << 4;
     nvs_write(&fs, NVS_ID_DISPLAY_HW, &disp_hw, sizeof(disp_hw));
+
+    nvs_write(&fs, NVS_ID_TEMP_OFFSET, &s->temp_offset_tenths,
+              sizeof(s->temp_offset_tenths));
 
     uint8_t magic = SETTINGS_MAGIC;
     nvs_write(&fs, NVS_ID_MAGIC, &magic, sizeof(magic));

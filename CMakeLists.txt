@@ -27,8 +27,9 @@ target_sources(app PRIVATE
 )
 
 target_sources_ifdef(CONFIG_WIFI app PRIVATE
-    src/httpserver.c
     src/ntp.c
+    src/wifista.c
+    src/wifisetup.c
+    src/httpserver.c
     src/webconfig.c
-    src/wifiap.c
 )

@@ -8,6 +8,7 @@ typedef enum {
     BUTTON_1_RELEASE,
     BUTTON_2_PRESS,
     BUTTON_2_RELEASE,
+    BUTTON_1_HELD,
     BUTTON_BOTH_HELD,
 } button_event_t;
 

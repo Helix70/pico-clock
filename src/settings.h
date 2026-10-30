@@ -32,6 +32,7 @@ typedef struct {
     bool led_r;
     bool led_g;
     bool led_b;
+    int8_t temp_offset_tenths;
 } settings_t;
 
 int settings_load(settings_t *s);
